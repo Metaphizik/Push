@@ -24,7 +24,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +39,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class EmailPasswordActivity extends AppCompatActivity implements
         View.OnClickListener {
@@ -45,8 +56,12 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     private TextView mDetailTextView;
     private EditText mEmailField;
     private EditText mPasswordField;
+    private Spinner spinner;
     public ProgressDialog mProgressDialog;
-  //  private TextView nav_header_mail;
+    private DatabaseReference studentsRef;
+    private ArrayList<String> user = new ArrayList<>();
+    ArrayAdapter<String> userAdapter;
+    //  private TextView nav_header_mail;
 //todo добавить имя пользователя в сменить пользователя
     // [START declare_auth]
     private FirebaseAuth mAuth;
@@ -62,6 +77,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         mDetailTextView = (TextView) findViewById(R.id.detail);
         mEmailField = (EditText) findViewById(R.id.field_email);
         mPasswordField = (EditText) findViewById(R.id.field_password);
+        spinner = (Spinner) findViewById(R.id.spinner);
 
         //почта на navigation_header
 
@@ -81,23 +97,42 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
         // [END initialize_auth]
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReferenceFromUrl("https://notificationtest-d75ae.firebaseio.com/");
+        studentsRef = ref.child("users/студенты");
+
+
     }
 
     // [START on_start_check_user]
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        //FirebaseUser currentUser = mAuth.getCurrentUser();
-        //updateUI(null);
         signOut();
-        findViewById(R.id.down_fieds_and_buttons).setVisibility(View.GONE);
+        findViewById(R.id.down_fieds_and_buttons).setVisibility(View.INVISIBLE);
+        findViewById(R.id.register_additional_layout).setVisibility(View.INVISIBLE);
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.INVISIBLE);
+        Switch switch4 = (Switch)findViewById(R.id.switch4);
+        switch4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // в зависимости от значения isChecked выводим нужное сообщение
+                if (isChecked) {
+                    spinner.setVisibility(View.VISIBLE);
+                    userAdapter.notifyDataSetChanged();
+                } else {
+                    spinner.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
     }
     // [END on_start_check_user]
 
     private void createAccount(String email, String password) {
         Log.d(TAG, "createAccount:" + email);
+
         if (!validateForm()) {
             return;
         }
@@ -260,6 +295,27 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         }
     }
 
+    void readUsers (){
+        studentsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                //получение списка пользователей из узла usersRef
+                Iterable<DataSnapshot> dataSnaps = dataSnapshot.getChildren();
+                userAdapter.notifyDataSetChanged();
+                for (DataSnapshot users : dataSnaps) {
+                    String c = users.getKey();
+                    user.add(c);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
         int i = v.getId();
@@ -274,10 +330,20 @@ public class EmailPasswordActivity extends AppCompatActivity implements
             findViewById(R.id.email_password_fields).setVisibility(View.VISIBLE);
             findViewById(R.id.email_create_account_button).setVisibility(View.VISIBLE);
             findViewById(R.id.email_sign_in_button).setVisibility(View.GONE);
-
+            findViewById(R.id.register_additional_layout).setVisibility(View.VISIBLE);
+            //заполняем спинер
+            userAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_item, user);
+            userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            //userAdapter.setNotifyOnChange(true);
+            spinner.setAdapter(userAdapter);
+            readUsers();
+            userAdapter.notifyDataSetChanged();
         }
         else if (i == R.id.email_create_account_button) {
             findViewById(R.id.show_buttons).setVisibility(View.GONE);
+            //ведаем видимым слой с доф функциями регистрации
+            findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
             createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
         } else if (i == R.id.email_sign_in_button) {
             signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());

@@ -174,6 +174,7 @@ public class newNotification extends AppCompatActivity{
         teachersRef.addListenerForSingleValueEvent(teacherListener);
         hideProgressDialog();
     }
+
     public void showProgressDialog() {
         if (mProgressDialog == null) {
             mProgressDialog = new ProgressDialog(this);
