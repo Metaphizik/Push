@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Google Inc. All Rights Reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package com.example.metaphizik.push.auth;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -39,13 +40,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EmailPasswordActivity extends AppCompatActivity implements
         View.OnClickListener {
@@ -56,13 +61,15 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     private TextView mDetailTextView;
     private EditText mEmailField;
     private EditText mPasswordField;
+    private EditText displayedName;
     private Spinner spinner;
     public ProgressDialog mProgressDialog;
     private DatabaseReference studentsRef;
-    private ArrayList<String> user = new ArrayList<>();
+    private DatabaseReference teachersRef;
+    private ArrayList<String> users = new ArrayList<>();
     ArrayAdapter<String> userAdapter;
+    private boolean student;
     //  private TextView nav_header_mail;
-//todo добавить имя пользователя в сменить пользователя
     // [START declare_auth]
     private FirebaseAuth mAuth;
     // [END declare_auth]
@@ -77,11 +84,12 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         mDetailTextView = (TextView) findViewById(R.id.detail);
         mEmailField = (EditText) findViewById(R.id.field_email);
         mPasswordField = (EditText) findViewById(R.id.field_password);
+        displayedName = (EditText) findViewById(R.id.displayedName);
         spinner = (Spinner) findViewById(R.id.spinner);
 
         //почта на navigation_header
 
-       // LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       /*  View vi = inflater.inflate(R.layout.navigation_header, null);
         nav_header_mail = (TextView)vi.findViewById(R.id.MAIL) ;*/
 
@@ -100,6 +108,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReferenceFromUrl("https://notificationtest-d75ae.firebaseio.com/");
         studentsRef = ref.child("users/студенты");
+        teachersRef = ref.child("users/преподаватели");
 
 
     }
@@ -113,7 +122,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         findViewById(R.id.register_additional_layout).setVisibility(View.INVISIBLE);
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
         spinner.setVisibility(View.INVISIBLE);
-        Switch switch4 = (Switch)findViewById(R.id.switch4);
+        Switch switch4 = (Switch) findViewById(R.id.switch4);
         switch4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             @Override
@@ -122,8 +131,10 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                 if (isChecked) {
                     spinner.setVisibility(View.VISIBLE);
                     userAdapter.notifyDataSetChanged();
+                    student = true;
                 } else {
                     spinner.setVisibility(View.INVISIBLE);
+                    student = false;
                 }
             }
         });
@@ -145,14 +156,63 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
+                            // Sign in success, update UI with the signed-in users's information
                             Log.d(TAG, "createUserWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            //todo: вот сюда вставить роля для ввода имени и группы
+                            final FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
-                            //todo а сюда запрос на изменение displayedname
+
+                            findViewById(R.id.show_buttons).setVisibility(View.GONE);
+                            findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
+
+                            //query for update displayed name
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(displayedName.getText().toString())
+                                    .build();
+                            if (user != null) {
+                                user.updateProfile(profileUpdates)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    //push regID and displayed name in database
+                                                    String token = FirebaseInstanceId.getInstance().getToken();
+
+                                                    if (student) {
+                                                        String group = spinner.getSelectedItem().toString();
+                                                        Map<String, String> user = new HashMap<>();
+                                                        user.put("имя", displayedName.getText().toString());
+                                                        user.put("regID", token);
+                                                        studentsRef.child(group).push().setValue(user);
+
+                                                    } else {
+                                                        Map<String, String> user = new HashMap<>();
+                                                        user.put("имя", displayedName.getText().toString());
+                                                        user.put("regID", token);
+                                                        teachersRef.push().setValue(user);
+
+                                                    }
+                                                }
+                                            }
+                                        });
+                            }
+
+
+
+
+
+                            //todo: это сохранит пару ключ-значение в память.
+                            SharedPreferences settings = getSharedPreferences("Имя файла настроек", 0);
+                            SharedPreferences.Editor editor = settings.edit();
+                            editor.putString("путь к token", "значение");
+                            editor.apply();
+
+                            //это для вовзвращения настроек
+                    /*SharedPreferences settings = getSharedPreferences("Имя файла настроек", 0);
+                    boolean silent = settings.getBoolean("silentMode", false);
+                    setSilent(silent);*/
+
                         } else {
-                            // If sign in fails, display a message to the user.
+                            // If sign in fails, display a message to the users.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
@@ -181,7 +241,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
+                            // Sign in success, update UI with the signed-in users's information
                             Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
@@ -193,7 +253,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                             setResult(RESULT_OK, intent);
                             finish();
                         } else {
-                            // If sign in fails, display a message to the user.
+                            // If sign in fails, display a message to the users.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
@@ -253,6 +313,15 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     private boolean validateForm() {
         boolean valid = true;
 
+        String name = displayedName.getText().toString();
+        if (TextUtils.isEmpty(name)) {
+            //Toast.makeText(this,"Введите имя",Toast.LENGTH_SHORT).show();
+            displayedName.setError("Required.");
+            valid = false;
+        } else {
+            displayedName.setError(null);
+        }
+
         String email = mEmailField.getText().toString();
         if (TextUtils.isEmpty(email)) {
             mEmailField.setError("Required.");
@@ -268,7 +337,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         } else {
             mPasswordField.setError(null);
         }
-
         return valid;
     }
 
@@ -295,7 +363,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         }
     }
 
-    void readUsers (){
+    void readUsers() {
         studentsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -305,7 +373,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                 userAdapter.notifyDataSetChanged();
                 for (DataSnapshot users : dataSnaps) {
                     String c = users.getKey();
-                    user.add(c);
+                    EmailPasswordActivity.this.users.add(c);
                 }
             }
 
@@ -324,8 +392,8 @@ public class EmailPasswordActivity extends AppCompatActivity implements
             findViewById(R.id.email_password_fields).setVisibility(View.VISIBLE);
             findViewById(R.id.email_sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.email_create_account_button).setVisibility(View.GONE);
-        }
-        else if (i == R.id.register_show) {
+            findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
+        } else if (i == R.id.register_show) {
             findViewById(R.id.down_fieds_and_buttons).setVisibility(View.VISIBLE);
             findViewById(R.id.email_password_fields).setVisibility(View.VISIBLE);
             findViewById(R.id.email_create_account_button).setVisibility(View.VISIBLE);
@@ -333,17 +401,13 @@ public class EmailPasswordActivity extends AppCompatActivity implements
             findViewById(R.id.register_additional_layout).setVisibility(View.VISIBLE);
             //заполняем спинер
             userAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, user);
+                    android.R.layout.simple_spinner_item, users);
             userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             //userAdapter.setNotifyOnChange(true);
             spinner.setAdapter(userAdapter);
             readUsers();
             userAdapter.notifyDataSetChanged();
-        }
-        else if (i == R.id.email_create_account_button) {
-            findViewById(R.id.show_buttons).setVisibility(View.GONE);
-            //ведаем видимым слой с доф функциями регистрации
-            findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
+        } else if (i == R.id.email_create_account_button) {
             createAccount(mEmailField.getText().toString(), mPasswordField.getText().toString());
         } else if (i == R.id.email_sign_in_button) {
             signIn(mEmailField.getText().toString(), mPasswordField.getText().toString());

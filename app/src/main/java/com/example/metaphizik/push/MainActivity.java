@@ -1,5 +1,5 @@
 package com.example.metaphizik.push;
-//TODO: все в String вынести в @new_notification.xml
+
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +15,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-//todo всевынести в Strings и пеервести
+    //todo всевынести в Strings и пеервести
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,17 +23,21 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: передалать на фрагменты
-                Intent intent = new Intent(MainActivity.this, newNotification.class);
-                startActivity(intent);
+                if (user == null) {
+                    ShowAuthForm();
+                } else {
+                    Intent intent = new Intent(MainActivity.this, newNotification.class);
+                    startActivity(intent);
+                }
             }
         });
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user == null){
+        if (user == null) {
             ShowAuthForm();
         }
 
@@ -92,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem item = menu.findItem(R.id.menu_signOut);
         if (user != null)
-        item.setTitle("Выйти ("+user.getEmail().toString()+")");
+            item.setTitle("Выйти (" + user.getEmail().toString() + ")");
         else item.setTitle("Войти");
         return true;
     }
@@ -100,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (item.getItemId()==R.id.menu_signOut){
+        if (item.getItemId() == R.id.menu_signOut) {
             ShowAuthForm();
         }
         return super.onOptionsItemSelected(item);
