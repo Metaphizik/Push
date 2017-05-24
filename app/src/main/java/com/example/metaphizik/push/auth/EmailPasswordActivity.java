@@ -1,18 +1,3 @@
-/**
- * Copyright 2016 Google Inc. All Rights Reserved.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 package com.example.metaphizik.push.auth;
 
@@ -34,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.metaphizik.push.MainActivity;
+import com.example.metaphizik.push.NewNotificationActivity;
 import com.example.metaphizik.push.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -56,6 +42,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         View.OnClickListener {
 
     private static final String TAG = "EmailPassword";
+    public static String TOKEN_PATH_PREFERENCE;
 
     private TextView mStatusTextView;
     private TextView mDetailTextView;
@@ -144,7 +131,16 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     private void createAccount(String email, String password) {
         Log.d(TAG, "createAccount:" + email);
 
-        if (!validateForm()) {
+        boolean valid = true;
+        String name = displayedName.getText().toString();
+        if (TextUtils.isEmpty(name)) {
+            //Toast.makeText(this,"Введите имя",Toast.LENGTH_SHORT).show();
+            displayedName.setError("Required.");
+            valid = false;
+        } else {
+            displayedName.setError(null);
+        }
+        if (!validateForm() && !valid) {
             return;
         }
 
@@ -176,7 +172,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                 if (task.isSuccessful()) {
                                                     //push regID and displayed name in database
                                                     String token = FirebaseInstanceId.getInstance().getToken();
-
                                                     if (student) {
                                                         String group = spinner.getSelectedItem().toString();
                                                         Map<String, String> user = new HashMap<>();
@@ -184,37 +179,34 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                         user.put("regID", token);
                                                         studentsRef.child(group).push().setValue(user);
 
+                                                        //сохраняем пару ключ-значение в память.
+                                                        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
+                                                        SharedPreferences.Editor editor = settings.edit();
+                                                        editor.putString("who", "студенты");
+                                                        editor.putString("group", group);
+                                                        editor.putString("push", studentsRef.child(group).push().getKey());
+                                                        editor.apply();
                                                     } else {
                                                         Map<String, String> user = new HashMap<>();
                                                         user.put("имя", displayedName.getText().toString());
                                                         user.put("regID", token);
                                                         teachersRef.push().setValue(user);
 
+                                                        //сохраняем пару ключ-значение в память.
+                                                        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
+                                                        SharedPreferences.Editor editor = settings.edit();
+                                                        editor.putString("who", "студенты");
+                                                        editor.putString("push", teachersRef.push().getKey());
+                                                        editor.apply();
                                                     }
                                                 }
                                             }
                                         });
                             }
-
-
-
-
-
-                            //todo: это сохранит пару ключ-значение в память.
-                            SharedPreferences settings = getSharedPreferences("Имя файла настроек", 0);
-                            SharedPreferences.Editor editor = settings.edit();
-                            editor.putString("путь к token", "значение");
-                            editor.apply();
-
-                            //это для вовзвращения настроек
-                    /*SharedPreferences settings = getSharedPreferences("Имя файла настроек", 0);
-                    boolean silent = settings.getBoolean("silentMode", false);
-                    setSilent(silent);*/
-
                         } else {
                             // If sign in fails, display a message to the users.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
+                            Toast.makeText(EmailPasswordActivity.this, "Registration failed.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
@@ -241,17 +233,26 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
+
                             // Sign in success, update UI with the signed-in users's information
-                            Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                            //возвращаем емайл на navigation_header
-                            //nav_header_mail.setText(email);
-                            invalidateOptionsMenu();
-                            Intent intent = new Intent(EmailPasswordActivity.this, MainActivity.class);
-                            intent.putExtra("email_tag", email);
-                            setResult(RESULT_OK, intent);
-                            finish();
+                            if (user != null)
+                                if (user.isEmailVerified()) {
+                                    updateUI(user);
+                                    invalidateOptionsMenu();
+                                    Intent intent = new Intent(EmailPasswordActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                                else {
+                                    Toast.makeText(EmailPasswordActivity.this, "Email is not verificated",
+                                            Toast.LENGTH_SHORT).show();
+                                    findViewById(R.id.email_password_buttons).setVisibility(View.GONE);
+                                    findViewById(R.id.email_password_fields).setVisibility(View.GONE);
+                                    findViewById(R.id.signed_in_buttons).setVisibility(View.VISIBLE);
+                                    findViewById(R.id.sign_out_button).setVisibility(View.INVISIBLE);
+
+                                }
                         } else {
                             // If sign in fails, display a message to the users.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -275,6 +276,14 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         mAuth.signOut();
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
         updateUI(null);
+
+        //обнуляем из памяти путь для token
+        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("who", null);
+        editor.putString("group", null);
+        editor.putString("push", null);
+        editor.apply();
     }
 
     private void sendEmailVerification() {
@@ -297,6 +306,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                 Toast.makeText(EmailPasswordActivity.this,
                                         "Verification email sent to " + user.getEmail(),
                                         Toast.LENGTH_SHORT).show();
+                                signOut();
+                                Intent intent = new Intent(EmailPasswordActivity.this, MainActivity.class);
+                                startActivity(intent);
                             } else {
                                 Log.e(TAG, "sendEmailVerification", task.getException());
                                 Toast.makeText(EmailPasswordActivity.this,
@@ -312,15 +324,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
     private boolean validateForm() {
         boolean valid = true;
-
-        String name = displayedName.getText().toString();
-        if (TextUtils.isEmpty(name)) {
-            //Toast.makeText(this,"Введите имя",Toast.LENGTH_SHORT).show();
-            displayedName.setError("Required.");
-            valid = false;
-        } else {
-            displayedName.setError(null);
-        }
 
         String email = mEmailField.getText().toString();
         if (TextUtils.isEmpty(email)) {
@@ -379,13 +382,15 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                Toast.makeText(EmailPasswordActivity.this, "Ошибка получения данных",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     @Override
     public void onClick(View v) {
+        //TODo поправить верификацию
         int i = v.getId();
         if (i == R.id.sign_in_show) {
             findViewById(R.id.down_fieds_and_buttons).setVisibility(View.VISIBLE);

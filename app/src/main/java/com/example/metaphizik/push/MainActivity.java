@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 
 import com.example.metaphizik.push.auth.EmailPasswordActivity;
@@ -16,6 +17,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity {
 
     //todo всевынести в Strings и пеервести
+    //todo удалить коменты и Log
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,23 +25,30 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (user == null) {
-                    ShowAuthForm();
-                } else {
-                    Intent intent = new Intent(MainActivity.this, newNotification.class);
-                    startActivity(intent);
-                }
-            }
-        });
+                                   @Override
+                                   public void onClick(View view) {
+                                       final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                       if (user == null) {
+                                           ShowAuthForm();
+                                       } else {
+                                           if (user.isEmailVerified()) {
+                                               Intent intent = new Intent(MainActivity.this, NewNotificationActivity.class);
+                                               startActivity(intent);
+                                           } else {
+                                               Toast.makeText(MainActivity.this,
+                                                       "Email is not verificated", Toast.LENGTH_SHORT).show();
+                                               ShowAuthForm();
+                                           }
+                                       }
+                                   }
+                               }
+        );
 
-        if (user == null) {
+        /*if (user == null) {
             ShowAuthForm();
-        }
+        }*/
 
         /*subscribe.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,14 +105,14 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem item = menu.findItem(R.id.menu_signOut);
         if (user != null)
-            item.setTitle("Выйти (" + user.getEmail().toString() + ")");
+            item.setTitle("Выйти (" + user.getEmail() + ")");
         else item.setTitle("Войти");
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
+        //TODO по тексту. выход- удалить принятые уведомления и не сразу в регистарционную форму входить
         if (item.getItemId() == R.id.menu_signOut) {
             ShowAuthForm();
         }
@@ -111,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ShowAuthForm() {
+        //TODo навернео сделать обычный вызов и в Emailauth добавить onBackPresed ля выхода на майн
         Intent intent = new Intent(MainActivity.this, EmailPasswordActivity.class);
         startActivityForResult(intent, 1);
         /*if(mail.getText().equals("Your email")) {

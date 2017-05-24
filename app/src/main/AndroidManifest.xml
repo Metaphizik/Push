@@ -16,7 +16,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.metaphizik.push.newNotification"></activity>
+        <activity android:name="com.example.metaphizik.push.NewNotificationActivity"></activity>
         <activity android:name="com.example.metaphizik.push.auth.EmailPasswordActivity"></activity>
         <!-- [START firebase_service] -->
         <service
