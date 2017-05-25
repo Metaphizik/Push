@@ -16,7 +16,6 @@ package com.example.metaphizik.push.services;
         import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-    //TODO: добавить onTokenRefresh или сервис
     private static final String TAG = "MyFirebaseMsgService";
 
     /**
@@ -28,16 +27,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // [START_EXCLUDE]
-        // There are two types of messages data messages and notification messages. Data messages are handled
+        // There are two types of messages data messages and NotificationExample messages. Data messages are handled
         // here in onMessageReceived whether the app is in the foreground or background. Data messages are the type
-        // traditionally used with GCM. Notification messages are only received here in onMessageReceived when the app
-        // is in the foreground. When the app is in the background an automatically generated notification is displayed.
-        // When the user taps on the notification they are returned to the app. Messages containing both notification
-        // and data payloads are treated as notification messages. The Firebase console always sends notification
+        // traditionally used with GCM. NotificationExample messages are only received here in onMessageReceived when the app
+        // is in the foreground. When the app is in the background an automatically generated NotificationExample is displayed.
+        // When the user taps on the NotificationExample they are returned to the app. Messages containing both NotificationExample
+        // and data payloads are treated as NotificationExample messages. The Firebase console always sends NotificationExample
         // messages. For more see: https://firebase.google.com/docs/cloud-messaging/concept-options
         // [END_EXCLUDE]
 
-        // TODO(developer): Handle FCM messages here.
+//todo запихивать в свой лейойт с автором и датой + а майн активити тоже и сделать сервис неубиваемым
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
@@ -55,9 +54,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         }
 
-        // Check if message contains a notification payload.
+        // Check if message contains a NotificationExample payload.
         if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            Log.d(TAG, "Message NotificationExample Body: " + remoteMessage.getNotification().getBody());
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
@@ -88,7 +87,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     /**
-     * Create and show a simple notification containing the received FCM message.
+     * Create and show a simple NotificationExample containing the received FCM message.
      *
      * @param messageBody FCM message body received.
      */
@@ -111,6 +110,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        notificationManager.notify(0 /* ID of NotificationExample */, notificationBuilder.build());
     }
 }

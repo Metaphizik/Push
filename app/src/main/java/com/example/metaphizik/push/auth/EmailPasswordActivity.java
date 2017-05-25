@@ -19,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.metaphizik.push.MainActivity;
-import com.example.metaphizik.push.NewNotificationActivity;
 import com.example.metaphizik.push.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -348,7 +347,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         if (user != null) {
             mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
                     user.getEmail(), user.isEmailVerified()));
-            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+            /*mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));*/
 
             findViewById(R.id.email_password_buttons).setVisibility(View.GONE);
             findViewById(R.id.email_password_fields).setVisibility(View.GONE);
@@ -390,7 +389,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
     @Override
     public void onClick(View v) {
-        //TODo поправить верификацию
         int i = v.getId();
         if (i == R.id.sign_in_show) {
             findViewById(R.id.down_fieds_and_buttons).setVisibility(View.VISIBLE);

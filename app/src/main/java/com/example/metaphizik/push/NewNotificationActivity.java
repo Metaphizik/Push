@@ -20,9 +20,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 public class NewNotificationActivity extends AppCompatActivity {
 
@@ -33,6 +35,7 @@ public class NewNotificationActivity extends AppCompatActivity {
     private ValueEventListener teacherListener;
     private ArrayAdapter<String> adapter;
     private FirebaseAuth mAuth;
+    private Map<String, Boolean> tokens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,36 +55,94 @@ public class NewNotificationActivity extends AppCompatActivity {
         notification_body = (EditText) findViewById(R.id.notification_body);
         send = (Button) findViewById(R.id.send);
 
-        final MultiAutoCompleteTextView to = (MultiAutoCompleteTextView)
+        final MultiAutoCompleteTextView toField = (MultiAutoCompleteTextView)
                 findViewById(R.id.multiAutoCompleteTextView);
         adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, users);
-        to.setAdapter(adapter);
-        to.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
-
+        toField.setAdapter(adapter);
+        toField.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
 
         Date date = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         final String currentDate = dateFormat.format(date);
 
+        //получние regID преподавателей
+        //todo пихать не в лист а в мап по типа имя-айди
+
+
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: сменить автора
-                //showProgressDialog();
-                String author = mAuth.getCurrentUser().getDisplayName();
-                Map<String, String> notification = new HashMap<>();
-                notification.put("получатель", to.getText().toString());
-                notification.put("текст", notification_body.getText().toString());
-                notification.put("автор", author);
-                notification.put("дата", currentDate);
+                //teachersRef.addListenerForSingleValueEvent(teacherRegIdListener);
+
+                final ArrayList<String> recievers = new ArrayList<>();
+
+                //final ValueEventListener teacherRegIdListener = new ValueEventListener() {
+                teachersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        //получение regID's
+                        Iterable<DataSnapshot> dataSnaps = dataSnapshot.getChildren();
+                        tokens = new HashMap<>();
+                        int commas = 0;
+                        String to = toField.getText().toString();
+                        for (char i : to.toCharArray()) {
+                            if (i == ',') commas++;
+                        }
+                        Collections.addAll(recievers, to.split(", ", commas+1));
+                        for (DataSnapshot dst : dataSnaps) {
+                            //распарсивание получатеелй
+                            for (String receiver : recievers) {
+                                if (dst.child("имя").getValue().toString().equals(receiver)) {
+                                    String c = dst.child("regID").getValue().toString();
+                                    //String c = String.valueOf(tokens.child("regID").getValue());
+                                    tokens.put(c, true);
+                                }
+                            }
+                        }
+                        NotificationExample notif = new NotificationExample();
+                        notif.setAuthor(mAuth.getCurrentUser().getDisplayName());
+                        notif.setDate(currentDate);
+                        notif.setText(notification_body.getText().toString());
+                        //notif.setTo(tokens);
+                        Map<String,Boolean> test = new HashMap<>();
+                        test.put("e0ZYpKLNxTY:APA91bF9WSp1Az1N0cXf8V1FdyWA-f0IciNTJWGm3mp76iB5M5BxOv0n6ucPVSA-9Z5rfHzOlVv57i-WoeBd5fvuN-pIB60bfhv5GBgo7-dcFbst7lSZeCHcbur9gEdX-g4_LPbNkn7D"
+                                ,true);
+                        test.put("-9Z5rfHzOlVv57i-WoeBd5fvuN-pIB60bfhv5GBgo7-dcFbst7lSZeCHcbur9gEdX-g4"
+                                ,true);
+                        notif.setTo(test);
+
+                        notificationsRef.push().setValue(notif);
+                        Intent intent = new Intent(NewNotificationActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(NewNotificationActivity.this, "Ошибка получения данных",
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                });
+
+                /*String author = mAuth.getCurrentUser().getDisplayName();
+                Map<String, String> NotificationExample = new HashMap<>();
+                Map<String, Map> komu = new HashMap<>();
+                //NotificationExample.put("получатель", toField.getText().toString());
+                NotificationExample.put("текст", notification_body.getText().toString());
+                NotificationExample.put("автор", author);
+                NotificationExample.put("дата", currentDate);
+                komu.put("получатели", tokens);*/
+
 
                 //проверяем что бы поля "получитель" и "текст" не были пустыми
-                for (Map.Entry to : notification.entrySet()) {
-                    if (to.getKey().equals("получатель") && !to.getValue().equals("")) {
-                        for (Map.Entry body : notification.entrySet()) {
+                /*for (Map.Entry to : NotificationExample.entrySet()) {
+                    if (true) { //верунть на to.getKey().equals("получатель") && !to.getValue().equals("")
+                        for (Map.Entry body : NotificationExample.entrySet()) {
                             if (body.getKey().equals("текст") && !body.getValue().equals("")) {
-                                notificationsRef.push().setValue(notification);
+                                notificationsRef.push().setValue(NotificationExample);
+                                //String key = notificationsRef.push().getKey();
+                                //notificationsRef.child(key).setValue(komu);
                                 Intent intent = new Intent(NewNotificationActivity.this, MainActivity.class);
                                 startActivity(intent);
                             } else if (body.getKey().equals("текст") && body.getValue().equals("")) {
@@ -94,7 +155,7 @@ public class NewNotificationActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
 
                     }
-                }
+                }*/
             }
         });
 
@@ -147,6 +208,7 @@ public class NewNotificationActivity extends AppCompatActivity {
 
                 for (DataSnapshot dsp : dataSnapshot.getChildren()) {
                     String c = String.valueOf(dsp.child("имя").getValue());
+                    //String c = dsp.child("имя").getValue().toString();
                     users.add(c); //add result into array list
                 }
             }

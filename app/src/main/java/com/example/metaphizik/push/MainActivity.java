@@ -18,6 +18,9 @@ public class MainActivity extends AppCompatActivity {
 
     //todo всевынести в Strings и пеервести
     //todo удалить коменты и Log
+    //todo совместимость и ворнинги поправитьт
+    //todo проверить сотаольные туду
+    //todo подписка на уведомления что бы рассылать с консоли
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,9 +123,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ShowAuthForm() {
-        //TODo навернео сделать обычный вызов и в Emailauth добавить onBackPresed ля выхода на майн
         Intent intent = new Intent(MainActivity.this, EmailPasswordActivity.class);
-        startActivityForResult(intent, 1);
+        startActivity(intent);
         /*if(mail.getText().equals("Your email")) {
             navigationView.getMenu().findItem(R.id.login).setVisible(true);
             navigationView.getMenu().findItem(R.id.logout).setVisible(false);
