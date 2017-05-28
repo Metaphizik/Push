@@ -19,4 +19,11 @@
     <string name="menu_sing_out">Сменить пользователя</string>
     <string name="signIn_show">Sign In</string>
     <string name="registration_show">Registration</string>
+    <string name="menu_enter">Вход</string>
+    <string name="send_button">Отправить</string>
+    <string name="new_notif_body_hint">Текст уведомления</string>
+    <string name="new_notif_to">Кому:</string>
+    <string name="switch_student">Студент</string>
+    <string name="switch_teacher">Преподаватель</string>
+    <string name="register_name_hint">Введите имя</string>
 </resources>

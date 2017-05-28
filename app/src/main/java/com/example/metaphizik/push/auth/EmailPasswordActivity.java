@@ -73,12 +73,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         displayedName = (EditText) findViewById(R.id.displayedName);
         spinner = (Spinner) findViewById(R.id.spinner);
 
-        //почта на navigation_header
-
-        // LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      /*  View vi = inflater.inflate(R.layout.navigation_header, null);
-        nav_header_mail = (TextView)vi.findViewById(R.id.MAIL) ;*/
-
         // Buttons
         findViewById(R.id.email_sign_in_button).setOnClickListener(this);
         findViewById(R.id.email_create_account_button).setOnClickListener(this);
@@ -95,8 +89,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                 .getReferenceFromUrl("https://notificationtest-d75ae.firebaseio.com/");
         studentsRef = ref.child("users/студенты");
         teachersRef = ref.child("users/преподаватели");
-
-
     }
 
     // [START on_start_check_user]
@@ -158,9 +150,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
                             findViewById(R.id.show_buttons).setVisibility(View.GONE);
                             findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
-
                             //query for update displayed name
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            UserProfileChangeRequest profileUpdates = new
+                                    UserProfileChangeRequest.Builder()
                                     .setDisplayName(displayedName.getText().toString())
                                     .build();
                             if (user != null) {
@@ -170,32 +162,46 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {
                                                     //push regID and displayed name in database
-                                                    String token = FirebaseInstanceId.getInstance().getToken();
+                                                    String token = FirebaseInstanceId.getInstance()
+                                                            .getToken();
                                                     if (student) {
-                                                        String group = spinner.getSelectedItem().toString();
+                                                        String group = spinner.getSelectedItem()
+                                                                .toString();
                                                         Map<String, String> user = new HashMap<>();
-                                                        user.put("имя", displayedName.getText().toString());
+                                                        user.put("имя", displayedName.getText()
+                                                                .toString());
                                                         user.put("regID", token);
-                                                        studentsRef.child(group).push().setValue(user);
+                                                        studentsRef.child(group).push()
+                                                                .setValue(user);
 
                                                         //сохраняем пару ключ-значение в память.
-                                                        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
-                                                        SharedPreferences.Editor editor = settings.edit();
+                                                        SharedPreferences settings =
+                                                                getSharedPreferences(
+                                                                        TOKEN_PATH_PREFERENCE, 0);
+                                                        SharedPreferences.Editor editor =
+                                                                settings.edit();
                                                         editor.putString("who", "студенты");
                                                         editor.putString("group", group);
-                                                        editor.putString("push", studentsRef.child(group).push().getKey());
+                                                        editor.putString("push",
+                                                                studentsRef.child(group).push()
+                                                                        .getKey());
                                                         editor.apply();
                                                     } else {
                                                         Map<String, String> user = new HashMap<>();
-                                                        user.put("имя", displayedName.getText().toString());
+                                                        user.put("имя", displayedName.getText()
+                                                                .toString());
                                                         user.put("regID", token);
                                                         teachersRef.push().setValue(user);
 
                                                         //сохраняем пару ключ-значение в память.
-                                                        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
-                                                        SharedPreferences.Editor editor = settings.edit();
+                                                        SharedPreferences settings =
+                                                                getSharedPreferences(
+                                                                        TOKEN_PATH_PREFERENCE, 0);
+                                                        SharedPreferences.Editor editor = settings
+                                                                .edit();
                                                         editor.putString("who", "студенты");
-                                                        editor.putString("push", teachersRef.push().getKey());
+                                                        editor.putString("push", teachersRef.push()
+                                                                .getKey());
                                                         editor.apply();
                                                     }
                                                 }
@@ -239,17 +245,22 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                 if (user.isEmailVerified()) {
                                     updateUI(user);
                                     invalidateOptionsMenu();
-                                    Intent intent = new Intent(EmailPasswordActivity.this, MainActivity.class);
+                                    Intent intent = new Intent(EmailPasswordActivity.this,
+                                            MainActivity.class);
                                     startActivity(intent);
                                     finish();
-                                }
-                                else {
-                                    Toast.makeText(EmailPasswordActivity.this, "Email is not verificated",
+                                } else {
+                                    Toast.makeText(EmailPasswordActivity.this,
+                                            "Email is not verificated",
                                             Toast.LENGTH_SHORT).show();
-                                    findViewById(R.id.email_password_buttons).setVisibility(View.GONE);
-                                    findViewById(R.id.email_password_fields).setVisibility(View.GONE);
-                                    findViewById(R.id.signed_in_buttons).setVisibility(View.VISIBLE);
-                                    findViewById(R.id.sign_out_button).setVisibility(View.INVISIBLE);
+                                    findViewById(R.id.email_password_buttons)
+                                            .setVisibility(View.GONE);
+                                    findViewById(R.id.email_password_fields)
+                                            .setVisibility(View.GONE);
+                                    findViewById(R.id.signed_in_buttons)
+                                            .setVisibility(View.VISIBLE);
+                                    findViewById(R.id.sign_out_button)
+                                            .setVisibility(View.INVISIBLE);
 
                                 }
                         } else {
@@ -306,7 +317,8 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                         "Verification email sent to " + user.getEmail(),
                                         Toast.LENGTH_SHORT).show();
                                 signOut();
-                                Intent intent = new Intent(EmailPasswordActivity.this, MainActivity.class);
+                                Intent intent = new Intent(EmailPasswordActivity.this,
+                                        MainActivity.class);
                                 startActivity(intent);
                             } else {
                                 Log.e(TAG, "sendEmailVerification", task.getException());

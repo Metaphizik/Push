@@ -35,6 +35,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         regID.put("regID", token);
         regIdRef.setValue(regID);
 
+        //sendRegistrationToServer(refreshedToken);
 
 
         //Log.d(TAG, "FCM Token: " + token);

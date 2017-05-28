@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,6 +15,15 @@ import android.widget.Toast;
 import com.example.metaphizik.push.auth.EmailPasswordActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.metaphizik.push.services.MyFirebaseMessagingService.OLD_NOTIFICATIONS;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 
+        //получаем список оповещений
 
         fab.setOnClickListener(new View.OnClickListener() {
                                    @Override
@@ -74,33 +86,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         invalidateOptionsMenu();
-    }
+        ComplexPreferences complexPreferences = ComplexPreferences.getComplexPreferences(this, OLD_NOTIFICATIONS, 0);
+        NotificationsList complexObject = complexPreferences.getObject("NotificationsList", NotificationsList.class);
+        if (complexObject != null) {
+            ArrayList<NotificationSample> listOldNotifications = complexObject.getNotificationList();
 
-    /*@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data ) {
-        if (data == null) {
-
-
-            mail.setText("Your email");
-            navigationView.getMenu().findItem(R.id.login).setVisible(true);
-            navigationView.getMenu().findItem(R.id.logout).setVisible(false);}
-        else {
-            mail.setText(data.getStringExtra("email_tag"));
-            navigationView.getMenu().findItem(R.id.login).setVisible(false);
-            navigationView.getMenu().findItem(R.id.logout).setVisible(true);
+            //заполянем оповещениями список
+            RecyclerView rv = (RecyclerView) findViewById(R.id.recyclerView);
+            LinearLayoutManager llm = new LinearLayoutManager(this);
+            rv.setLayoutManager(llm);
+            OldNotificationAdapter adapter = new OldNotificationAdapter(listOldNotifications);
+            rv.setAdapter(adapter);
         }
-    }*/
-
-    /*@Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
-        MenuItem item = menu.findItem(R.id.menu_signOut);
-        if (user != null)
-            item.setTitle("Сменить пользователя ("+user.getEmail().toString()+")");
-
-    }*/
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -125,15 +123,6 @@ public class MainActivity extends AppCompatActivity {
     private void ShowAuthForm() {
         Intent intent = new Intent(MainActivity.this, EmailPasswordActivity.class);
         startActivity(intent);
-        /*if(mail.getText().equals("Your email")) {
-            navigationView.getMenu().findItem(R.id.login).setVisible(true);
-            navigationView.getMenu().findItem(R.id.logout).setVisible(false);
-
-        } else {
-            navigationView.getMenu().findItem(R.id.login).setVisible(false);
-            navigationView.getMenu().findItem(R.id.logout).setVisible(true);
-        }*/
-
     }
 
 

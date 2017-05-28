@@ -9,10 +9,11 @@
     <MultiAutoCompleteTextView
         android:id="@+id/multiAutoCompleteTextView"
         android:layout_width="244dp"
-        android:layout_height="44dp"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="54dp"
+        android:maxLines="5"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -24,7 +25,7 @@
         android:layout_marginBottom="38dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:text="Отправить"
+        android:text="@string/send_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -35,20 +36,20 @@
         android:layout_height="157dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="44dp"
         android:ems="10"
-        android:hint="Текст уведомления"
+        android:hint="@string/new_notif_body_hint"
         android:inputType="textLongMessage"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/multiAutoCompleteTextView" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="161dp" />
 
     <TextView
         android:id="@+id/textEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="Кому:"
+        android:text="@string/new_notif_to"
         android:textSize="18sp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="66dp"

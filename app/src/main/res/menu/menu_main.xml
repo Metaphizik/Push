@@ -5,7 +5,7 @@
     <item
         android:id="@+id/menu_signOut"
         android:orderInCategory="100"
-        android:title="Вход"
+        android:title="@string/menu_enter"
         app:showAsAction="never">
     </item>
 </menu>
