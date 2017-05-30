@@ -118,44 +118,31 @@ public class NewNotificationActivity extends AppCompatActivity {
                         notif.setText(notification_body.getText().toString());
                         notif.setTo(tokens);
 
-                        //TEST TEST TEST
-                        Map<String, Boolean> test = new HashMap<>();
+                        //Start test
+                       /* Map<String, Boolean> test = new HashMap<>();
                         test.put("e0ZYpKLNxTY:APA91bF9WSp1Az1N0cXf8V1FdyWA-f0IciNTJWGm3mp76iB5M5BxOv0n6ucPVSA-9Z5rfHzOlVv57i-WoeBd5fvuN-pIB60bfhv5GBgo7-dcFbst7lSZeCHcbur9gEdX-g4_LPbNkn7D"
                                 , true);
-                        notif.setTo(test);
+                        notif.setTo(test);*/
+                        //End Test
 
                         //проверяем что бы поля "получитель" и "текст" не были пустыми
-                        //todo
-                        /*for (Map.Entry to : tokens.entrySet()) {
-                            if (true) { //верунть на to.getKey().equals("получатель") && !to.getValue().equals("")
-                                for (Map.Entry body : NotificationSample.entrySet()) {
-                                    if (body.getKey().equals("текст") && !body.getValue().equals("")) {
-                                        notificationsRef.push().setValue(NotificationSample);
-                                        //String key = notificationsRef.push().getKey();
-                                        //notificationsRef.child(key).setValue(komu);
-                                        Intent intent = new Intent(NewNotificationActivity.this, MainActivity.class);
-                                        startActivity(intent);
-                                    } else if (body.getKey().equals("текст") && body.getValue().equals("")) {
-                                        Toast.makeText(NewNotificationActivity.this, "нет body",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            } else if (to.getKey().equals("получатель") && to.getValue().equals("")) {
-                                Toast.makeText(NewNotificationActivity.this, "нет получателя",
-                                        Toast.LENGTH_SHORT).show();
+                        if (notif.getTo().size()!= 0){
+                            if (!notif.getText().equals("")){
+                                notificationsRef.push().setValue(notif);
+                                Intent intent = new Intent(NewNotificationActivity.this,
+                                        MainActivity.class);
+                                startActivity(intent);
+                            }else notification_body.setError("Заполните");
 
-                            }
-                        }*/
-                        notificationsRef.push().setValue(notif);
-                        Intent intent = new Intent(NewNotificationActivity.this,
-                                MainActivity.class);
-                        startActivity(intent);
+                        }else ToField.setError("Заполните");
+
                     }
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Toast.makeText(NewNotificationActivity.this, "Ошибка получения данных",
                                 Toast.LENGTH_SHORT).show();
                     }
+
                 });
             }
         });

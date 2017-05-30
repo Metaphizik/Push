@@ -26,4 +26,7 @@
     <string name="switch_student">Студент</string>
     <string name="switch_teacher">Преподаватель</string>
     <string name="register_name_hint">Введите имя</string>
+
+    <string name="delete">Удалить</string>
+    <string name="deleteAll">Удалить все</string>
 </resources>

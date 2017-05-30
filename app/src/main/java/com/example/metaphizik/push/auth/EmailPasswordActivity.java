@@ -4,8 +4,10 @@ package com.example.metaphizik.push.auth;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.metaphizik.push.ComplexPreferences;
 import com.example.metaphizik.push.MainActivity;
 import com.example.metaphizik.push.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -32,10 +35,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.example.metaphizik.push.services.MyFirebaseMessagingService.OLD_NOTIFICATIONS;
 
 public class EmailPasswordActivity extends AppCompatActivity implements
         View.OnClickListener {
@@ -55,7 +61,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     private ArrayList<String> users = new ArrayList<>();
     ArrayAdapter<String> userAdapter;
     private boolean student;
-    //  private TextView nav_header_mail;
+    String group;
     // [START declare_auth]
     private FirebaseAuth mAuth;
     // [END declare_auth]
@@ -100,17 +106,35 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         findViewById(R.id.register_additional_layout).setVisibility(View.INVISIBLE);
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
         spinner.setVisibility(View.INVISIBLE);
-        Switch switch4 = (Switch) findViewById(R.id.switch4);
+        final Switch switch4 = (Switch) findViewById(R.id.switch4);
+        switch4.getThumbDrawable().setColorFilter(ContextCompat
+                        .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
+                PorterDuff.Mode.SRC_IN);
+        switch4.getTrackDrawable().setColorFilter (ContextCompat
+                        .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
+                PorterDuff.Mode.SRC_IN);
         switch4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // в зависимости от значения isChecked выводим нужное сообщение
+                // проверяем какая учетная запись регистрируется
                 if (isChecked) {
+                    switch4.getThumbDrawable().setColorFilter(ContextCompat
+                            .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
+                            PorterDuff.Mode.SRC_IN);
+                    switch4.getTrackDrawable().setColorFilter (ContextCompat
+                            .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
+                            PorterDuff.Mode.SRC_IN);
                     spinner.setVisibility(View.VISIBLE);
                     userAdapter.notifyDataSetChanged();
                     student = true;
                 } else {
+                    switch4.getThumbDrawable().setColorFilter(ContextCompat
+                                    .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
+                            PorterDuff.Mode.SRC_IN);
+                    switch4.getTrackDrawable().setColorFilter (ContextCompat
+                            .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
+                            PorterDuff.Mode.SRC_IN);
                     spinner.setVisibility(View.INVISIBLE);
                     student = false;
                 }
@@ -165,7 +189,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                     String token = FirebaseInstanceId.getInstance()
                                                             .getToken();
                                                     if (student) {
-                                                        String group = spinner.getSelectedItem()
+                                                        group = spinner.getSelectedItem()
                                                                 .toString();
                                                         Map<String, String> user = new HashMap<>();
                                                         user.put("имя", displayedName.getText()
@@ -173,6 +197,12 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                         user.put("regID", token);
                                                         studentsRef.child(group).push()
                                                                 .setValue(user);
+                                                        //подписываемся на топик своей группы и
+                                                        //топик "студенты"
+                                                        FirebaseMessaging.getInstance()
+                                                                .subscribeToTopic("Студенты");
+                                                        FirebaseMessaging.getInstance()
+                                                                .subscribeToTopic(group);
 
                                                         //сохраняем пару ключ-значение в память.
                                                         SharedPreferences settings =
@@ -192,14 +222,16 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                                 .toString());
                                                         user.put("regID", token);
                                                         teachersRef.push().setValue(user);
-
+                                                        //подписываемся на топик "преподаватели"
+                                                        FirebaseMessaging.getInstance()
+                                                                .subscribeToTopic("Преподаватели");
                                                         //сохраняем пару ключ-значение в память.
                                                         SharedPreferences settings =
                                                                 getSharedPreferences(
                                                                         TOKEN_PATH_PREFERENCE, 0);
                                                         SharedPreferences.Editor editor = settings
                                                                 .edit();
-                                                        editor.putString("who", "студенты");
+                                                        editor.putString("who", "преподаватели");
                                                         editor.putString("push", teachersRef.push()
                                                                 .getKey());
                                                         editor.apply();
@@ -287,13 +319,40 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
         updateUI(null);
 
-        //обнуляем из памяти путь для token
-        SharedPreferences settings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("who", null);
-        editor.putString("group", null);
-        editor.putString("push", null);
-        editor.apply();
+        //обнуляем из памяти путь для token и старые уведомления
+        /*
+        SharedPreferences pathSettings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
+        SharedPreferences oldNotif = getSharedPreferences(OLD_NOTIFICATIONS, 0);
+        SharedPreferences.Editor pathEditor = pathSettings.edit();
+        SharedPreferences.Editor oldNotifEditor = oldNotif.edit();
+        pathEditor.clear();
+
+        oldNotifEditor.clear();
+        pathEditor.apply();
+        oldNotifEditor.apply();*/
+
+        //отписываемся от топиков
+        SharedPreferences settings =
+                getSharedPreferences(
+                        TOKEN_PATH_PREFERENCE, 0);
+        String who = settings.getString("who", null);
+
+        if (who != null) {
+            if (who.equals("студенты")) {
+                FirebaseMessaging.getInstance()
+                        .unsubscribeFromTopic("Студенты");
+                FirebaseMessaging.getInstance()
+                        .unsubscribeFromTopic(group);
+            }
+            if (who.equals("преподаватели")) FirebaseMessaging.getInstance()
+                    .unsubscribeFromTopic("Преподаватели");
+        }
+        this.getSharedPreferences(TOKEN_PATH_PREFERENCE, 0).edit().clear().apply();
+
+        ComplexPreferences complexPreferences = ComplexPreferences
+                .getComplexPreferences(this, OLD_NOTIFICATIONS, 0);
+        complexPreferences.clear();
+        complexPreferences.apply();
     }
 
     private void sendEmailVerification() {

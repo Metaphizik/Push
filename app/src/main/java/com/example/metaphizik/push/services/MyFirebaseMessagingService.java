@@ -27,7 +27,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public static String OLD_NOTIFICATIONS;
     private NotificationSample data;
 
-    //TODO очистка списка при логауте, контекстное меню -удалит одно оповещение и удалить все
     /**
      * Called when message is received.
      *
@@ -70,7 +69,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         complexObject.setNotificationList(oldNotifications);
         complexPreferences = ComplexPreferences.getComplexPreferences(this, OLD_NOTIFICATIONS, 0);
         complexPreferences.putObject("NotificationsList", complexObject);
-        complexPreferences.commit();
+        complexPreferences.apply();
 
         sendNotification();
     }

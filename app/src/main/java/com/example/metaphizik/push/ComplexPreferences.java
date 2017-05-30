@@ -49,8 +49,20 @@ public class ComplexPreferences {
         editor.putString(key, GSON.toJson(object));
     }
 
+    public void delete(String key) {
+        editor.remove(key);
+    }
+     public void clear() {
+         editor.clear();
+     }
+
+
     public void commit() {
         editor.commit();
+    }
+
+    public void apply(){
+        editor.apply();
     }
 
     public <T> T getObject(String key, Class<T> a) {

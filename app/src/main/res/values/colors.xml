@@ -7,6 +7,9 @@
     <color name="whiteColor">#ffffff</color>
     <color name="colorBlack">#191919</color>
 
+    <color name="switch_on_color">#3c5abe</color>
+    <color name="switch_off_color">#3cbe5a</color>
+
     <color name="grey_100">#F5F5F5</color>
     <color name="grey_300">#E0E0E0</color>
 </resources>

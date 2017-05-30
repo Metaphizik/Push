@@ -4,18 +4,17 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
-// Listens for new notifications added to notifications/:pushId
-exports.pushNotification = functions.database.ref('/notifications/{pushId}').onWrite( event => {
+// Ставим слушатель на добавление уведомлений в notifications/:pushId
+exports.pushNotification = functions.database.ref('/notifications/{pushId}')
+    .onWrite( event => {
 
     console.log('Push notification event triggered');
-
     var valueObject = event.data.val();
         console.log(event.data.key);
         var tokens = Object.keys(valueObject.to);
         console.log(tokens);
 
-
-  // Create a notification
+  // Создаем пакет данных с уведомлением
     const payload = {
         data: {
             title: valueObject.author,
@@ -26,7 +25,8 @@ exports.pushNotification = functions.database.ref('/notifications/{pushId}').onW
         },
     };
 console.log("payload", payload);
-  //Create an options object that contains the time to live for the notification and the priority
+
+  //Выставляем доп опции
     const options = {
         priority: "high",
         timeToLive: 60 * 60 * 24

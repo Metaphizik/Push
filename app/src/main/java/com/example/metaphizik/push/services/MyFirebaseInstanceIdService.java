@@ -15,11 +15,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
 
     @Override
     public void onTokenRefresh() {
-        // If you need to handle the generation of a token, initially or
-        // after a refresh this is where you should do that.
 
-        //Единмтсенное что нам отсюда надо, переполучать regID при
-        //его изменении, посылать его в БД и, возможно подписыавться на топик
         String token = FirebaseInstanceId.getInstance().getToken();
         //это для вовзвращения настроек
         SharedPreferences tokenPathPref = getSharedPreferences(EmailPasswordActivity.TOKEN_PATH_PREFERENCE, 0);
@@ -35,13 +31,5 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         regID.put("regID", token);
         regIdRef.setValue(regID);
 
-        //sendRegistrationToServer(refreshedToken);
-
-
-        //Log.d(TAG, "FCM Token: " + token);
-
-        // Once a token is generated, we subscribe to topic.
-        //FirebaseMessaging.getInstance()
-        //        .subscribeToTopic(FRIENDLY_ENGAGE_TOPIC);
     }
 }
