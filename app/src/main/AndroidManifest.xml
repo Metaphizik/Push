@@ -17,17 +17,15 @@
         </activity>
         <activity android:name="com.example.metaphizik.push.NewNotificationActivity" />
         <activity android:name="com.example.metaphizik.push.auth.EmailPasswordActivity" />
-        <!-- [START firebase_service] -->
-        <service
-            android:name="com.example.metaphizik.push.services.MyFirebaseMessagingService">
+
+        <service android:name="com.example.metaphizik.push.services.MyFirebaseMessagingService">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".services.MyFirebaseInstanceIdService"
-            android:enabled="true">
-        </service>
-        <!-- [END firebase_service] -->
+        <service
+            android:name=".services.MyFirebaseInstanceIdService"
+            android:enabled="true" />
     </application>
 
 </manifest>

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.example.metaphizik.push.ComplexPreferences;
 import com.example.metaphizik.push.MainActivity;
@@ -19,20 +18,12 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-    private static final String TAG = "MyFirebaseMsgService";
     public static String OLD_NOTIFICATIONS;
     private NotificationSample data;
 
-    /**
-     * Called when message is received.
-     *
-     * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
-     */
-    // [START receive_message]
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
@@ -93,20 +84,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      * Handle time allotted to BroadcastReceivers.
      */
     private void handleNow(RemoteMessage remoteMessage) {
-        Log.d(TAG, "Short lived task is done.");
-
-
-        //принимаем данные в NotificationSample
-
 
     }
 
-    /**
-     * Create and show a simple NotificationSample containing the received FCM message.
-     * <p>
-     * FCM message body received.
-     */
-    //create mesage as a result of onMessageRecieved callback
     private void sendNotification() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

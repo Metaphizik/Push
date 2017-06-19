@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -51,6 +52,8 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
     private TextView mStatusTextView;
     private TextView mDetailTextView;
+    private TextView studentTV;
+    private TextView teacherTV;
     private EditText mEmailField;
     private EditText mPasswordField;
     private EditText displayedName;
@@ -62,16 +65,15 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     ArrayAdapter<String> userAdapter;
     private boolean student;
     String group;
-    // [START declare_auth]
+
     private FirebaseAuth mAuth;
-    // [END declare_auth]
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_emailpassword);
 
-        // Views
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
         mEmailField = (EditText) findViewById(R.id.field_email);
@@ -79,7 +81,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         displayedName = (EditText) findViewById(R.id.displayedName);
         spinner = (Spinner) findViewById(R.id.spinner);
 
-        // Buttons
         findViewById(R.id.email_sign_in_button).setOnClickListener(this);
         findViewById(R.id.email_create_account_button).setOnClickListener(this);
         findViewById(R.id.sign_out_button).setOnClickListener(this);
@@ -88,20 +89,22 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         findViewById(R.id.sign_in_show).setOnClickListener(this);
         findViewById(R.id.register_show).setOnClickListener(this);
 
-        // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
-        // [END initialize_auth]
+
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReferenceFromUrl("https://notificationtest-d75ae.firebaseio.com/");
         studentsRef = ref.child("users/студенты");
         teachersRef = ref.child("users/преподаватели");
     }
 
-    // [START on_start_check_user]
+
     @Override
     public void onStart() {
         super.onStart();
         signOut();
+        studentTV = (TextView) findViewById(R.id.studentTV);
+        teacherTV = (TextView) findViewById(R.id.teacherTV);
+        teacherTV.setTypeface(null, Typeface.BOLD);
         findViewById(R.id.down_fieds_and_buttons).setVisibility(View.INVISIBLE);
         findViewById(R.id.register_additional_layout).setVisibility(View.INVISIBLE);
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
@@ -110,7 +113,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         switch4.getThumbDrawable().setColorFilter(ContextCompat
                         .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
                 PorterDuff.Mode.SRC_IN);
-        switch4.getTrackDrawable().setColorFilter (ContextCompat
+        switch4.getTrackDrawable().setColorFilter(ContextCompat
                         .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
                 PorterDuff.Mode.SRC_IN);
         switch4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -120,11 +123,13 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                 // проверяем какая учетная запись регистрируется
                 if (isChecked) {
                     switch4.getThumbDrawable().setColorFilter(ContextCompat
-                            .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
+                                    .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
                             PorterDuff.Mode.SRC_IN);
-                    switch4.getTrackDrawable().setColorFilter (ContextCompat
-                            .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
+                    switch4.getTrackDrawable().setColorFilter(ContextCompat
+                                    .getColor(EmailPasswordActivity.this, R.color.switch_on_color),
                             PorterDuff.Mode.SRC_IN);
+                    studentTV.setTypeface(null, Typeface.BOLD);
+                    teacherTV.setTypeface(Typeface.DEFAULT);
                     spinner.setVisibility(View.VISIBLE);
                     userAdapter.notifyDataSetChanged();
                     student = true;
@@ -132,16 +137,18 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                     switch4.getThumbDrawable().setColorFilter(ContextCompat
                                     .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
                             PorterDuff.Mode.SRC_IN);
-                    switch4.getTrackDrawable().setColorFilter (ContextCompat
-                            .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
+                    switch4.getTrackDrawable().setColorFilter(ContextCompat
+                                    .getColor(EmailPasswordActivity.this, R.color.switch_off_color),
                             PorterDuff.Mode.SRC_IN);
+                    teacherTV.setTypeface(null, Typeface.BOLD);
+                    studentTV.setTypeface(Typeface.DEFAULT);
                     spinner.setVisibility(View.INVISIBLE);
                     student = false;
                 }
             }
         });
     }
-    // [END on_start_check_user]
+
 
     private void createAccount(String email, String password) {
         Log.d(TAG, "createAccount:" + email);
@@ -149,7 +156,6 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         boolean valid = true;
         String name = displayedName.getText().toString();
         if (TextUtils.isEmpty(name)) {
-            //Toast.makeText(this,"Введите имя",Toast.LENGTH_SHORT).show();
             displayedName.setError("Required.");
             valid = false;
         } else {
@@ -161,20 +167,19 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
         showProgressDialog();
 
-        // [START create_user_with_email]
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in users's information
+
                             Log.d(TAG, "createUserWithEmail:success");
                             final FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
 
                             findViewById(R.id.show_buttons).setVisibility(View.GONE);
                             findViewById(R.id.register_additional_layout).setVisibility(View.GONE);
-                            //query for update displayed name
+                            //запросна обновление имени
                             UserProfileChangeRequest profileUpdates = new
                                     UserProfileChangeRequest.Builder()
                                     .setDisplayName(displayedName.getText().toString())
@@ -185,7 +190,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {
-                                                    //push regID and displayed name in database
+                                                    //отправка regID и имени в БД
                                                     String token = FirebaseInstanceId.getInstance()
                                                             .getToken();
                                                     if (student) {
@@ -200,9 +205,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                         //подписываемся на топик своей группы и
                                                         //топик "студенты"
                                                         FirebaseMessaging.getInstance()
-                                                                .subscribeToTopic("Студенты");
-                                                        FirebaseMessaging.getInstance()
-                                                                .subscribeToTopic(group);
+                                                                .subscribeToTopic("Students");
+                                                        /*FirebaseMessaging.getInstance()
+                                                                .subscribeToTopic(group);*/
 
                                                         //сохраняем пару ключ-значение в память.
                                                         SharedPreferences settings =
@@ -224,7 +229,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                                         teachersRef.push().setValue(user);
                                                         //подписываемся на топик "преподаватели"
                                                         FirebaseMessaging.getInstance()
-                                                                .subscribeToTopic("Преподаватели");
+                                                                .subscribeToTopic("Teachers");
                                                         //сохраняем пару ключ-значение в память.
                                                         SharedPreferences settings =
                                                                 getSharedPreferences(
@@ -241,19 +246,14 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                         });
                             }
                         } else {
-                            // If sign in fails, display a message to the users.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Registration failed.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
-
-                        // [START_EXCLUDE]
                         hideProgressDialog();
-                        // [END_EXCLUDE]
                     }
                 });
-        // [END create_user_with_email]
     }
 
     private void signIn(final String email, String password) {
@@ -261,17 +261,14 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         if (!validateForm()) {
             return;
         }
-
         showProgressDialog();
 
-        // [START sign_in_with_email]
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
 
-                            // Sign in success, update UI with the signed-in users's information
                             FirebaseUser user = mAuth.getCurrentUser();
                             if (user != null)
                                 if (user.isEmailVerified()) {
@@ -296,47 +293,29 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
                                 }
                         } else {
-                            // If sign in fails, display a message to the users.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(EmailPasswordActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
-
-                        // [START_EXCLUDE]
                         if (!task.isSuccessful()) {
                             mStatusTextView.setText(R.string.auth_failed);
                         }
                         hideProgressDialog();
-                        // [END_EXCLUDE]
                     }
                 });
-        // [END sign_in_with_email]
     }
 
     private void signOut() {
         mAuth.signOut();
         findViewById(R.id.show_buttons).setVisibility(View.VISIBLE);
         updateUI(null);
-
-        //обнуляем из памяти путь для token и старые уведомления
-        /*
-        SharedPreferences pathSettings = getSharedPreferences(TOKEN_PATH_PREFERENCE, 0);
-        SharedPreferences oldNotif = getSharedPreferences(OLD_NOTIFICATIONS, 0);
-        SharedPreferences.Editor pathEditor = pathSettings.edit();
-        SharedPreferences.Editor oldNotifEditor = oldNotif.edit();
-        pathEditor.clear();
-
-        oldNotifEditor.clear();
-        pathEditor.apply();
-        oldNotifEditor.apply();*/
-
-        //отписываемся от топиков
         SharedPreferences settings =
                 getSharedPreferences(
                         TOKEN_PATH_PREFERENCE, 0);
         String who = settings.getString("who", null);
 
+        //отписываемся от топиков
         if (who != null) {
             if (who.equals("студенты")) {
                 FirebaseMessaging.getInstance()
@@ -348,7 +327,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                     .unsubscribeFromTopic("Преподаватели");
         }
         this.getSharedPreferences(TOKEN_PATH_PREFERENCE, 0).edit().clear().apply();
-
+        //удаляем старые уведомления
         ComplexPreferences complexPreferences = ComplexPreferences
                 .getComplexPreferences(this, OLD_NOTIFICATIONS, 0);
         complexPreferences.clear();
@@ -356,19 +335,15 @@ public class EmailPasswordActivity extends AppCompatActivity implements
     }
 
     private void sendEmailVerification() {
-        // Disable button
         findViewById(R.id.verify_email_button).setEnabled(false);
 
-        // Send verification email
-        // [START send_email_verification]
         final FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             user.sendEmailVerification()
                     .addOnCompleteListener(this, new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            // [START_EXCLUDE]
-                            // Re-enable button
+
                             findViewById(R.id.verify_email_button).setEnabled(true);
 
                             if (task.isSuccessful()) {
@@ -385,11 +360,9 @@ public class EmailPasswordActivity extends AppCompatActivity implements
                                         "Failed to send verification email.",
                                         Toast.LENGTH_SHORT).show();
                             }
-                            // [END_EXCLUDE]
                         }
                     });
         }
-        // [END send_email_verification]
     }
 
     private boolean validateForm() {
@@ -397,7 +370,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
         String email = mEmailField.getText().toString();
         if (TextUtils.isEmpty(email)) {
-            mEmailField.setError("Required.");
+            mEmailField.setError("Обязательное.");
             valid = false;
         } else {
             mEmailField.setError(null);
@@ -405,7 +378,7 @@ public class EmailPasswordActivity extends AppCompatActivity implements
 
         String password = mPasswordField.getText().toString();
         if (TextUtils.isEmpty(password)) {
-            mPasswordField.setError("Required.");
+            mPasswordField.setError("Обязательное.");
             valid = false;
         } else {
             mPasswordField.setError(null);
@@ -418,17 +391,13 @@ public class EmailPasswordActivity extends AppCompatActivity implements
         if (user != null) {
             mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
                     user.getEmail(), user.isEmailVerified()));
-            /*mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));*/
-
             findViewById(R.id.email_password_buttons).setVisibility(View.GONE);
             findViewById(R.id.email_password_fields).setVisibility(View.GONE);
             findViewById(R.id.signed_in_buttons).setVisibility(View.VISIBLE);
-
             findViewById(R.id.verify_email_button).setEnabled(!user.isEmailVerified());
         } else {
             mStatusTextView.setText(R.string.signed_out);
             mDetailTextView.setText(null);
-
             findViewById(R.id.down_fieds_and_buttons).setVisibility(View.VISIBLE);
             findViewById(R.id.email_sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.email_password_fields).setVisibility(View.VISIBLE);

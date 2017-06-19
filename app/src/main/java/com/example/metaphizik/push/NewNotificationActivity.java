@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 
 public class NewNotificationActivity extends AppCompatActivity {
 
-    private ArrayList<String> users = new ArrayList<>();
+    private ArrayList<String> users;
     private DatabaseReference studentsRef, teachersRef, usersRef;
     private ValueEventListener studentListener;
     private ValueEventListener teacherListener;
     private ArrayAdapter<String> adapter;
     private FirebaseAuth mAuth;
     private Map<String, Boolean> tokens;
-    MultiAutoCompleteTextView ToField;
+    private MultiAutoCompleteTextView ToField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +46,8 @@ public class NewNotificationActivity extends AppCompatActivity {
         Button send;
         final EditText notification_body;
         notification_body = (EditText) findViewById(R.id.notification_body);
+        ToField = (MultiAutoCompleteTextView)
+                findViewById(R.id.multiAutoCompleteTextView);
         send = (Button) findViewById(R.id.send);
 
         DatabaseReference ref = FirebaseDatabase.getInstance()
@@ -56,8 +58,7 @@ public class NewNotificationActivity extends AppCompatActivity {
         usersRef = ref.child("users");
         mAuth = FirebaseAuth.getInstance();
 
-        ToField = (MultiAutoCompleteTextView)
-                findViewById(R.id.multiAutoCompleteTextView);
+        users = new ArrayList<>();
         adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, users);
         ToField.setAdapter(adapter);
@@ -119,30 +120,29 @@ public class NewNotificationActivity extends AppCompatActivity {
                         notif.setTo(tokens);
 
                         //Start test
-                       /* Map<String, Boolean> test = new HashMap<>();
+                        Map<String, Boolean> test = new HashMap<>();
                         test.put("e0ZYpKLNxTY:APA91bF9WSp1Az1N0cXf8V1FdyWA-f0IciNTJWGm3mp76iB5M5BxOv0n6ucPVSA-9Z5rfHzOlVv57i-WoeBd5fvuN-pIB60bfhv5GBgo7-dcFbst7lSZeCHcbur9gEdX-g4_LPbNkn7D"
                                 , true);
-                        notif.setTo(test);*/
+                        notif.setTo(test);
                         //End Test
 
                         //проверяем что бы поля "получитель" и "текст" не были пустыми
-                        if (notif.getTo().size()!= 0){
-                            if (!notif.getText().equals("")){
+                        if (notif.getTo().size() != 0) {
+                            if (!notif.getText().equals("")) {
                                 notificationsRef.push().setValue(notif);
                                 Intent intent = new Intent(NewNotificationActivity.this,
                                         MainActivity.class);
                                 startActivity(intent);
-                            }else notification_body.setError("Заполните");
+                            } else notification_body.setError("Заполните");
 
-                        }else ToField.setError("Заполните");
-
+                        } else ToField.setError("Заполните");
                     }
+
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Toast.makeText(NewNotificationActivity.this, "Ошибка получения данных",
                                 Toast.LENGTH_SHORT).show();
                     }
-
                 });
             }
         });
@@ -181,6 +181,7 @@ public class NewNotificationActivity extends AppCompatActivity {
                 }
                 adapter.notifyDataSetChanged();
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(NewNotificationActivity.this, "Ошибка получения данных",
@@ -200,6 +201,7 @@ public class NewNotificationActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 ToField.setEnabled(true);
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(NewNotificationActivity.this, "Ошибка получения данных",

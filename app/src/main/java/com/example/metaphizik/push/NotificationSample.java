@@ -10,7 +10,8 @@ public class NotificationSample {
     private String author;
     private Map<String, Boolean> to;
 
-    public NotificationSample() {};
+    public NotificationSample() {
+    }
 
     public String getDate() {
         return date;

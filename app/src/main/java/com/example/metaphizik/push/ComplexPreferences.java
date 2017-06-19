@@ -1,11 +1,12 @@
 package com.example.metaphizik.push;
 
-import java.lang.reflect.Type;
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 
 public class ComplexPreferences {
 
@@ -38,30 +39,22 @@ public class ComplexPreferences {
     }
 
     public void putObject(String key, Object object) {
-        if(object == null){
+        if (object == null) {
             throw new IllegalArgumentException("object is null");
         }
 
-        if(key.equals("") || key == null){
+        if (key.equals("") || key == null) {
             throw new IllegalArgumentException("key is empty or null");
         }
 
         editor.putString(key, GSON.toJson(object));
     }
 
-    public void delete(String key) {
-        editor.remove(key);
-    }
-     public void clear() {
-         editor.clear();
-     }
-
-
-    public void commit() {
-        editor.commit();
+    public void clear() {
+        editor.clear();
     }
 
-    public void apply(){
+    public void apply() {
         editor.apply();
     }
 
@@ -71,7 +64,7 @@ public class ComplexPreferences {
         if (gson == null) {
             return null;
         } else {
-            try{
+            try {
                 return GSON.fromJson(gson, a);
             } catch (Exception e) {
                 throw new IllegalArgumentException("Object storaged with key " + key + " is instanceof other class");

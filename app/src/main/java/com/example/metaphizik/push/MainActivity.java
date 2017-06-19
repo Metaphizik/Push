@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     //todo удалить коменты и Log
     //todo совместимость и ворнинги поправитьт
     //todo проверить сотаольные туду
-    //todo подписка на уведомления что бы рассылать с консоли
+    //todo рассылка с консоли
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,27 +35,27 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.floatingActionButton);
 
         //получаем список оповещений
-
         fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final FirebaseUser user = FirebaseAuth.getInstance()
-                        .getCurrentUser();
-                if (user == null) {
-                    ShowAuthForm();
-                } else {
-                    if (user.isEmailVerified()) {
-                        Intent intent = new Intent(MainActivity.this,
-                                NewNotificationActivity.class);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(MainActivity.this,
-                                "Email is not verificated",
-                                Toast.LENGTH_SHORT).show();
-                        ShowAuthForm();
-                    }
-                }
-            }}
+                                   @Override
+                                   public void onClick(View view) {
+                                       final FirebaseUser user = FirebaseAuth.getInstance()
+                                               .getCurrentUser();
+                                       if (user == null) {
+                                           ShowAuthForm();
+                                       } else {
+                                           if (user.isEmailVerified()) {
+                                               Intent intent = new Intent(MainActivity.this,
+                                                       NewNotificationActivity.class);
+                                               startActivity(intent);
+                                           } else {
+                                               Toast.makeText(MainActivity.this,
+                                                       "Email is not verificated",
+                                                       Toast.LENGTH_SHORT).show();
+                                               ShowAuthForm();
+                                           }
+                                       }
+                                   }
+                               }
         );
     }
 
